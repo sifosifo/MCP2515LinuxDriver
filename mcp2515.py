@@ -439,9 +439,18 @@ class mcp2515:
 		self.spi.writebytes(command)
 
 	def ReadRegister(self, Register, n):
-		Data = [self.SPI_READ, Register, 0, 0, 0]
+		Data = [self.SPI_READ, Register] + [0]*n 
 		#print Data
 		self.spi.xfer(Data)
 		#print Data
-		return(Data)
+		return(Data[2:])
 
+	def BitModify(self, Register, Mask, Value):
+#		print "BitModify(Reg=0x%x, Mask=0x%x, Value=0x%x)" % (Register, Mask, Value)
+		command = [self.SPI_BIT_MODIFY, Register] + [Mask, Value]
+		self.spi.writebytes(command)
+	
+	def ReadStatus(self, type):
+		Data = [type, 0xFF]		
+		self.spi.xfer(Data)
+		return(Data[1])	

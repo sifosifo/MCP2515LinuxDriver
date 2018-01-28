@@ -19,8 +19,8 @@ Bottomline:
 - If you don't have skill or time to make proper kernel driver work on your linux distribution and it is sufficient use basic functionality this driver provide using your own Python script, this is good solution for you.
 
 CURRENT STATE:
-- In development - transmission, nor reception works
-- Just basic communication with chip works (which is useless)
+- In development - very basic transmission and reception works in loop mode
+- Needs to rework a bit - create message structure
 - Working driver is expected by beginning of february 2018
 
 
