@@ -7,7 +7,8 @@ class can:
 	def __init__(self):
 		self.mcp2515 = mcp2515()
 		# On board with 8MHz oscilator, this initializes 125kBaud/s CAN speed 
-		self.mcp2515.WriteRegister(mcp2515.CNF3, [0x07, 0x9A, 0x01])
+		#self.mcp2515.WriteRegister(mcp2515.CNF3, [0x07, 0x9A, 0x01])
+		self.mcp2515.WriteRegister(mcp2515.CNF3, [0x07, 0x9A, 0x00])
 		print self.mcp2515.ReadRegister(mcp2515.CNF3, 3)
 		
 		self.mcp2515.WriteRegister(mcp2515.TXRTSCTRL, [0])
@@ -17,8 +18,8 @@ class can:
 			(1<<mcp2515.B0BFM)|(1<<mcp2515.B1BFM)])
 		# No prescaler	
 		self.mcp2515.WriteRegister(mcp2515.CANCTRL, [0])
-		self.SetMode(mcp2515.OPMODE_LOOPBACK)
-		#self.SetMode(mcp2515.OPMODE_NORMAL)
+		#self.SetMode(mcp2515.OPMODE_LOOPBACK)
+		self.SetMode(mcp2515.OPMODE_NORMAL)
 
 	def SetMode(self, Mode):
 		print "Changinig mode to: ",
@@ -76,23 +77,6 @@ class can:
 		# Send data
 		self.mcp2515.BitModify(mcp2515.TXB0CTRL + address, mcp2515.TXREQ, mcp2515.TXREQ)
 		
-
-   #/* Tx Buffer 0 */
-#    TXB0CTRL        = 0x30
-#    TXB0SIDH        = 0x31
-#    TXB0SIDL        = 0x32
-#    TXB0EID8        = 0x33
-#    TXB0EID0        = 0x34
-#    TXB0DLC         = 0x35
-#    TXB0D0          = 0x36
-#    TXB0D1          = 0x37
-#    TXB0D2          = 0x38
-#    TXB0D3          = 0x39
-#    TXB0D4          = 0x3A
-#    TXB0D5          = 0x3B
-#    TXB0D6          = 0x3C
-#    TXB0D7          = 0x3D
-
 	def Receive(self):
 		ReceiveBuffer = 0
 		while ReceiveBuffer == 0:
@@ -119,5 +103,17 @@ class can:
 		print ''
 		return(Data)
 
+
+#typedef struct
+#{
+#		uint32_t id;				//!< ID der Nachricht (11 oder 29 Bit)
+#		struct {
+#			int rtr : 1;			//!< Remote-Transmit-Request-Frame?
+#			int extended : 1;		//!< extended ID?
+#		} flags;
+#	uint8_t length;				//!< Anzahl der Datenbytes
+#	uint8_t data[8];			//!< Die Daten der CAN Nachricht
+	
+#} can_t;
 
 
