@@ -21,6 +21,5 @@ Bottomline:
 CURRENT STATE:
 - In development - very basic transmission and reception works on 250kBaud/s bus
 - Needs to rework a bit - create message structure
-- Working driver is expected by beginning of february 2018
-
+- Currently working, but not using interrupt signal
 

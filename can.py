@@ -6,13 +6,20 @@ import time
 class can:
 	def __init__(self):
 		self.mcp2515 = mcp2515()
+		time.sleep(0.01)
+		# Clear all pending interrupts
+#		self.mcp2515.WriteRegister(mcp2515.CANINTF, [0])
 		# On board with 8MHz oscilator, this initializes 125kBaud/s CAN speed 
-		#self.mcp2515.WriteRegister(mcp2515.CNF3, [0x07, 0x9A, 0x01])
-		self.mcp2515.WriteRegister(mcp2515.CNF3, [0x07, 0x9A, 0x00])
-		print self.mcp2515.ReadRegister(mcp2515.CNF3, 3)
-		
+		#self.mcp2515.WriteRegister(mcp2515.CNF3, [0x07, 0x9A, 0x01])	#125
+		self.mcp2515.WriteRegister(mcp2515.CNF3, [0x07, 0x9A, 0x00])	# 250
+		# Enable interrupts
+#		self.mcp2515.WriteRegister(mcp2515.CANINTE, [mcp2515.RX0IE|mcp2515.RX1IE])
+#		self.mcp2515.WriteRegister(mcp2515.CANINTF, [mcp2515.RX0IF])
+#		print 'iiiiiiiiiiiiiii'
+#		print self.mcp2515.ReadRegister(mcp2515.CANINTF, 1)
+#		print self.mcp2515.ReadRegister(mcp2515.CANINTE, 1)
+#		print 'iiiiiiiiiiiiiii'
 		self.mcp2515.WriteRegister(mcp2515.TXRTSCTRL, [0])
-		
 		self.mcp2515.WriteRegister(mcp2515.BFPCTRL, \
 			[(1<<mcp2515.B0BFE)|(1<<mcp2515.B1BFE)| \
 			(1<<mcp2515.B0BFM)|(1<<mcp2515.B1BFM)])
@@ -71,36 +78,43 @@ class can:
 
 		# Copy data to buffer
 		self.mcp2515.WriteRegister(mcp2515.TXB0SIDH + address, Raw)
-		for one in Raw:		
-			print "0x%x\t" % one,
-		print ''
+#		for one in Raw:		
+#			print "0x%x\t" % one,
+#		print ''
 		# Send data
 		self.mcp2515.BitModify(mcp2515.TXB0CTRL + address, mcp2515.TXREQ, mcp2515.TXREQ)
 		
 	def Receive(self):
 		ReceiveBuffer = 0
-		while ReceiveBuffer == 0:
-			status = self.mcp2515.ReadRegister(mcp2515.CANINTF, 1)
-			if (status[0] & mcp2515.RX0IF) != 0:
-				ReceiveBuffer = 1
-			elif (status[0] & mcp2515.RX1IF) != 0:
-				ReceiveBuffer = 2
-			else:	 
-				time.sleep(1)
-		ReceiveBuffer -= 1
-		print "Received message in buffer %d" % ReceiveBuffer
-		Data = self.mcp2515.ReadRegister(mcp2515.RXB0SIDH + ReceiveBuffer, 5)
-		dlc = Data[4] & 0x0F
-		id = (Data[0]<<3) + (Data[1]>>5) 
-		print "DLC:%d, ID:0x%x" % (dlc, id)
-		for one in Data:		
-			print "0x%x\t" % one,
-		print ''
-		print 'Data: ',
-		Data = self.mcp2515.ReadRegister(mcp2515.RXB0D0 + ReceiveBuffer, dlc)
-		for one in Data:		
-			print "0x%x\t" % one,
-		print ''
+		status = self.mcp2515.ReadRegister(mcp2515.CANINTF, 1)
+		if (status[0] & mcp2515.RX0IF) != 0:
+			ReceiveBuffer = 1
+		elif (status[0] & mcp2515.RX1IF) != 0:
+			ReceiveBuffer = 2
+		if ReceiveBuffer != 0:
+				ReceiveBuffer -= 1
+#				print "Received message in buffer %d" % ReceiveBuffer
+				Data = self.mcp2515.ReadRegister(mcp2515.RXB0SIDH + ReceiveBuffer, 5)
+				dlc = Data[4] & 0x0F
+				id = (Data[0]<<3) + (Data[1]>>5) 
+#				print "DLC:%d, ID:0x%x" % (dlc, id)
+#				for one in Data:		
+#					print "0x%x\t" % one,
+#				print ''
+#				print 'Data: ',
+				Data = self.mcp2515.ReadRegister(mcp2515.RXB0D0 + ReceiveBuffer, dlc)
+#				for one in Data:		
+#					print "0x%x\t" % one,
+#				print ''
+				Data = [id] + Data
+				# Clear received flag so new message can be received
+				if ReceiveBuffer==0:
+					mask = mcp2515.RX0IF
+				else:
+					mask = mcp2515.RX1IF
+				self.mcp2515.BitModify(mcp2515.CANINTF, mask, 0)
+		else:
+			Data = 0
 		return(Data)
 
 
